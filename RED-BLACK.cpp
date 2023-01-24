@@ -1,254 +1,242 @@
-//RED-BLACK TREE
-#include <iostream>
+#include <bits/stdc++.h>
 using namespace std;
 
-struct Node {
-  int data;
-  Node *parent;
-  Node *left;
-  Node *right;
-  int color;
+enum Color
+{
+    RED,
+    BLACK
 };
 
-typedef Node *NodePtr;
-
-class RedBlackTree {
-   private:
-  NodePtr root;
-  NodePtr TNULL;
-
-  void initializeNULLNode(NodePtr node, NodePtr parent) {
-    node->data = 0;
-    node->parent = parent;
-    node->left = nullptr;
-    node->right = nullptr;
-    node->color = 0;
-  }
-
-  void rbTransplant(NodePtr u, NodePtr v) {
-    if (u->parent == nullptr) {
-      root = v;
-    } else if (u == u->parent->left) {
-      u->parent->left = v;
-    } else {
-      u->parent->right = v;
+struct Node
+{
+    int data;
+    bool color;
+    Node *left, *right, *parent;
+    Node(int data)
+    {
+        this->data = data;
+        left = right = parent = NULL;
+        this->color = RED;
     }
-    v->parent = u->parent;
-  }
-
-  // For balancing the tree after insertion
-  void insertFix(NodePtr k) {
-    NodePtr u;
-    while (k->parent->color == 1) {
-      if (k->parent == k->parent->parent->right) {
-        u = k->parent->parent->left;
-        if (u->color == 1) {
-          u->color = 0;
-          k->parent->color = 0;
-          k->parent->parent->color = 1;
-          k = k->parent->parent;
-        } else {
-          if (k == k->parent->left) {
-            k = k->parent;
-            rightRotate(k);
-          }
-          k->parent->color = 0;
-          k->parent->parent->color = 1;
-          leftRotate(k->parent->parent);
-        }
-      } else {
-        u = k->parent->parent->right;
-
-        if (u->color == 1) {
-          u->color = 0;
-          k->parent->color = 0;
-          k->parent->parent->color = 1;
-          k = k->parent->parent;
-        } else {
-          if (k == k->parent->right) {
-            k = k->parent;
-            leftRotate(k);
-          }
-          k->parent->color = 0;
-          k->parent->parent->color = 1;
-          rightRotate(k->parent->parent);
-        }
-      }
-      if (k == root) {
-        break;
-      }
-    }
-    root->color = 0;
-  }
-
-  void printHelper(NodePtr root, string indent, bool last) {
-    if (root != TNULL) {
-      cout << indent;
-      if (last) {
-        cout << "R----";
-        indent += "   ";
-      } else {
-        cout << "L----";
-        indent += "|  ";
-      }
-
-      string sColor = root->color ? "RED" : "BLACK";
-      cout << root->data << "(" << sColor << ")" << endl;
-      printHelper(root->left, indent, false);
-      printHelper(root->right, indent, true);
-    }
-  }
-
-   public:
-  RedBlackTree() {
-    TNULL = new Node;
-    TNULL->color = 0;
-    TNULL->left = nullptr;
-    TNULL->right = nullptr;
-    root = TNULL;
-  }
-
-  NodePtr minimum(NodePtr node) {
-    while (node->left != TNULL) {
-      node = node->left;
-    }
-    return node;
-  }
-
-  NodePtr maximum(NodePtr node) {
-    while (node->right != TNULL) {
-      node = node->right;
-    }
-    return node;
-  }
-
-  NodePtr successor(NodePtr x) {
-    if (x->right != TNULL) {
-      return minimum(x->right);
-    }
-
-    NodePtr y = x->parent;
-    while (y != TNULL && x == y->right) {
-      x = y;
-      y = y->parent;
-    }
-    return y;
-  }
-
-  NodePtr predecessor(NodePtr x) {
-    if (x->left != TNULL) {
-      return maximum(x->left);
-    }
-
-    NodePtr y = x->parent;
-    while (y != TNULL && x == y->left) {
-      x = y;
-      y = y->parent;
-    }
-
-    return y;
-  }
-
-  void leftRotate(NodePtr x) {
-    NodePtr y = x->right;
-    x->right = y->left;
-    if (y->left != TNULL) {
-      y->left->parent = x;
-    }
-    y->parent = x->parent;
-    if (x->parent == nullptr) {
-      this->root = y;
-    } else if (x == x->parent->left) {
-      x->parent->left = y;
-    } else {
-      x->parent->right = y;
-    }
-    y->left = x;
-    x->parent = y;
-  }
-
-  void rightRotate(NodePtr x) {
-    NodePtr y = x->left;
-    x->left = y->right;
-    if (y->right != TNULL) {
-      y->right->parent = x;
-    }
-    y->parent = x->parent;
-    if (x->parent == nullptr) {
-      this->root = y;
-    } else if (x == x->parent->right) {
-      x->parent->right = y;
-    } else {
-      x->parent->left = y;
-    }
-    y->right = x;
-    x->parent = y;
-  }
-
-  // Inserting a node
-  void insert(int key) {
-    NodePtr node = new Node;
-    node->parent = nullptr;
-    node->data = key;
-    node->left = TNULL;
-    node->right = TNULL;
-    node->color = 1;
-
-    NodePtr y = nullptr;
-    NodePtr x = this->root;
-
-    while (x != TNULL) {
-      y = x;
-      if (node->data < x->data) {
-        x = x->left;
-      } else {
-        x = x->right;
-      }
-    }
-
-    node->parent = y;
-    if (y == nullptr) {
-      root = node;
-    } else if (node->data < y->data) {
-      y->left = node;
-    } else {
-      y->right = node;
-    }
-
-    if (node->parent == nullptr) {
-      node->color = 0;
-      return;
-    }
-
-    if (node->parent->parent == nullptr) {
-      return;
-    }
-
-    insertFix(node);
-  }
-
-  NodePtr getRoot() {
-    return this->root;
-  }
-
-  void printTree() {
-    if (root) {
-      printHelper(this->root, "", true);
-    }
-  }
 };
 
-int main() {
-  RedBlackTree bst;
-  int n;
-  cout << "Enter Number of Nodes \n";
-  cin >> n;
+class RBTree
+{
+    Node *root;
 
-  while(n--) {
-    int k;
-    cin >> k;
-    bst.insert(k);
-  }
+public:
+    void rotateLeft(Node *&, Node *&);
+    void rotateRight(Node *&, Node *&);
+    void fixViolation(Node *&, Node *&);
+    RBTree() { root = NULL; }
+    void insert(int &n);
+    void inorder();
+    void levelOrder();
+};
 
-  bst.printTree();
-},
+void inorderHelper(Node *root)
+{
+    if (root == NULL)
+        return;
+
+    inorderHelper(root->left);
+    cout << root->data << ":";
+    if (root->color == 1)
+        cout << "Black ";
+    else
+        cout << "Red ";
+    inorderHelper(root->right);
+}
+
+Node *BSTInsert(Node *root, Node *pt)
+{
+    if (root == NULL)
+        return pt;
+
+    if (pt->data < root->data)
+    {
+        root->left = BSTInsert(root->left, pt);
+        root->left->parent = root;
+    }
+    else if (pt->data > root->data)
+    {
+        root->right = BSTInsert(root->right, pt);
+        root->right->parent = root;
+    }
+    return root;
+}
+
+void levelOrderHelper(Node *root)
+{
+    if (root == NULL)
+        return;
+
+    std::queue<Node *> q;
+    q.push(root);
+
+    while (!q.empty())
+    {
+        Node *temp = q.front();
+        cout << temp->data << ":";
+        if (temp->color == 1)
+            cout << "Black ";
+        else
+            cout << "Red ";
+        q.pop();
+
+        if (temp->left != NULL)
+            q.push(temp->left);
+
+        if (temp->right != NULL)
+            q.push(temp->right);
+    }
+    cout << endl;
+}
+
+void RBTree::rotateLeft(Node *&root, Node *&pt)
+{
+    Node *pt_right = pt->right;
+
+    pt->right = pt_right->left;
+
+    if (pt->right != NULL)
+        pt->right->parent = pt;
+
+    pt_right->parent = pt->parent;
+
+    if (pt->parent == NULL)
+        root = pt_right;
+
+    else if (pt == pt->parent->left)
+        pt->parent->left = pt_right;
+
+    else
+        pt->parent->right = pt_right;
+
+    pt_right->left = pt;
+    pt->parent = pt_right;
+}
+
+void RBTree::rotateRight(Node *&root, Node *&pt)
+{
+    Node *pt_left = pt->left;
+
+    pt->left = pt_left->right;
+
+    if (pt->left != NULL)
+        pt->left->parent = pt;
+
+    pt_left->parent = pt->parent;
+
+    if (pt->parent == NULL)
+        root = pt_left;
+
+    else if (pt == pt->parent->left)
+        pt->parent->left = pt_left;
+
+    else
+        pt->parent->right = pt_left;
+
+    pt_left->right = pt;
+    pt->parent = pt_left;
+}
+
+void RBTree::fixViolation(Node *&root, Node *&pt)
+{
+    Node *parent_pt = NULL;
+    Node *grand_parent_pt = NULL;
+
+    while ((pt != root) && (pt->color != BLACK) && (pt->parent->color == RED))
+    {
+
+        parent_pt = pt->parent;
+        grand_parent_pt = pt->parent->parent;
+
+        if (parent_pt == grand_parent_pt->left)
+        {
+
+            Node *uncle_pt = grand_parent_pt->right;
+
+            if (uncle_pt != NULL && uncle_pt->color == RED)
+            {
+                grand_parent_pt->color = RED;
+                parent_pt->color = BLACK;
+                uncle_pt->color = BLACK;
+                pt = grand_parent_pt;
+            }
+
+            else
+            {
+                if (pt == parent_pt->right)
+                {
+                    rotateLeft(root, parent_pt);
+                    pt = parent_pt;
+                    parent_pt = pt->parent;
+                }
+
+                rotateRight(root, grand_parent_pt);
+                swap(parent_pt->color, grand_parent_pt->color);
+                pt = parent_pt;
+            }
+        }
+
+        else
+        {
+            Node *uncle_pt = grand_parent_pt->left;
+
+            if ((uncle_pt != NULL) && (uncle_pt->color == RED))
+            {
+                grand_parent_pt->color = RED;
+                parent_pt->color = BLACK;
+                uncle_pt->color = BLACK;
+                pt = grand_parent_pt;
+            }
+            else
+            {
+                if (pt == parent_pt->left)
+                {
+                    rotateRight(root, parent_pt);
+                    pt = parent_pt;
+                    parent_pt = pt->parent;
+                }
+                rotateLeft(root, grand_parent_pt);
+                swap(parent_pt->color, grand_parent_pt->color);
+                pt = parent_pt;
+            }
+        }
+    }
+
+    root->color = BLACK;
+}
+
+void RBTree::insert(int &data)
+{
+    Node *pt = new Node(data);
+    root = BSTInsert(root, pt);
+    fixViolation(root, pt);
+}
+
+void RBTree::inorder() { inorderHelper(root); }
+void RBTree::levelOrder() { levelOrderHelper(root); }
+
+int main()
+{
+    RBTree tree;
+    int n, key;
+    cout << "Enter the no. of elements:" << endl;
+    cin >> n;
+    cout << "Enter the elements:" << endl;
+    for (int i = 0; i < n; i++)
+    {
+        cin >> key;
+        tree.insert(key);
+        cout << "Level Order Traversal after inserting " << key << " : " << endl;
+        tree.levelOrder();
+    }
+    cout << endl;
+    cout << "Inorder Traversal of Created Tree" << endl;
+    tree.inorder();
+    cout << endl;
+
+    return 0;
+}
